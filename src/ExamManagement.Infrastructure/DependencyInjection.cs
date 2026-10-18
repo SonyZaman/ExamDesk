@@ -7,6 +7,7 @@ using ExamManagement.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +25,7 @@ public static class DependencyInjection
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection")
                     ?? throw new InvalidOperationException("DefaultConnection is required for PostgreSQL.");
-                options.UseNpgsql(connectionString);
+                options.UseNpgsql(ToNpgsqlConnectionString(connectionString));
             }
             else if (provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
             {
@@ -79,5 +80,25 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddSingleton<IClock, SystemClock>();
         return services;
+    }
+
+    private static string ToNpgsqlConnectionString(string connectionString)
+    {
+        if (!connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+            return connectionString;
+
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.Port > 0 ? uri.Port : 5432,
+            Database = uri.AbsolutePath.Trim('/'),
+            Username = Uri.UnescapeDataString(userInfo[0]),
+            Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty,
+            SslMode = SslMode.Require
+        };
+        return builder.ConnectionString;
     }
 }
