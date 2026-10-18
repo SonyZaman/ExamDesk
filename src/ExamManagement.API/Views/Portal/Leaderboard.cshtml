@@ -1,0 +1,64 @@
+@model List<ExamResult>
+@{
+    ViewData["Title"] = "Batch leaderboard";
+    var batch = (ExamBatch)ViewBag.Batch;
+    var names = (Dictionary<string,string>)ViewBag.Names;
+    var exams = batch.Exams.OrderBy(x => x.QuestionReleaseAtUtc).ThenBy(x => x.Title).ToList();
+    var total = exams.Sum(x => x.FullMarks);
+    var published = exams.Count(x => x.ResultPublishedAtUtc != null);
+    var ready = exams.Count > 0 && published == exams.Count && total > 0;
+    var scores = batch.Enrollments.Where(x => x.Status == EnrollmentStatus.Active)
+        .Select(x => new { x.StudentId, Marks = Model.Where(r => r.StudentId == x.StudentId).Sum(r => r.Marks) })
+        .OrderByDescending(x => x.Marks).ThenBy(x => names.GetValueOrDefault(x.StudentId, "Student")).ToList();
+}
+<a asp-action="Index">← Dashboard</a>
+<p class="eyebrow">BATCH LEADERBOARD</p>
+<h1>@batch.Name</h1>
+<p class="muted">Overall performance across every exam in this batch.</p>
+<section class="stats">
+    <article><span>Exams in this batch</span><strong>@exams.Count</strong></article>
+    <article><span>Results published</span><strong>@published / @exams.Count</strong></article>
+    <article><span>Total available marks</span><strong>@total</strong></article>
+</section>
+<div class="panel">
+    <h2>Overall ranking</h2>
+    <p>Batch percentage = total marks earned across all exams ÷ @total total available marks × 100.</p>
+    <p class="muted">Exams contribute according to their full marks. Missing submissions count as zero. Equal totals share the same rank.</p>
+    @if (!ready)
+    {
+        <div class="notice">@(exams.Count == 0 ? "No exams have been scheduled in this batch yet." : "Batch rankings will appear when all exams below have published results.")</div>
+    }
+    else if (scores.Count == 0)
+    {
+        <p class="empty">No active students are enrolled in this batch.</p>
+    }
+    else
+    {
+        <div class="tablewrap"><table>
+            <thead><tr><th>Rank</th><th>Student</th>
+            @foreach (var exam in exams) { <th>@exam.Title<small>Out of @exam.FullMarks</small></th> }
+            <th>Total marks</th><th>Overall percentage</th></tr></thead>
+            <tbody>
+            @foreach (var score in scores)
+            {
+                <tr><td>#@(1 + scores.Count(x => x.Marks > score.Marks))</td>
+                <td>@names.GetValueOrDefault(score.StudentId, "Student")</td>
+                @foreach (var exam in exams)
+                {
+                    <td>@(Model.FirstOrDefault(x => x.ExamId == exam.Id && x.StudentId == score.StudentId)?.Marks ?? 0)</td>
+                }
+                <td>@score.Marks / @total</td><td><strong>@((100 * score.Marks / total).ToString("0.00"))%</strong></td></tr>
+            }
+            </tbody>
+        </table></div>
+    }
+</div>
+<div class="panel"><h2>Exams included in this batch</h2><div class="tablewrap"><table>
+    <thead><tr><th>Exam</th><th>Full marks</th><th>Results</th><th></th></tr></thead>
+    <tbody>@foreach (var exam in exams)
+    {
+        <tr><td>@exam.Title</td><td>@exam.FullMarks</td>
+        <td><span class="badge">@(exam.ResultPublishedAtUtc != null ? "Published" : "Pending publication")</span></td>
+        <td><a asp-action="Exam" asp-route-id="@exam.Id">View exam →</a></td></tr>
+    }</tbody>
+</table></div></div>

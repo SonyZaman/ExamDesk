@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+.git/
+.github/
+src/ExamManagement.API/exam-management.db
+src/ExamManagement.API/App_Data/
+tests/
+*.md

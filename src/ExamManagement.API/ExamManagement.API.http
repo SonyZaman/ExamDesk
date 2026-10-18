@@ -1,0 +1,41 @@
+@host = http://localhost:5080
+@token = paste-access-token-here
+
+### Register a student
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Student One",
+  "email": "student1@example.com",
+  "password": "Student123"
+}
+
+### Login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "student1@example.com",
+  "password": "Student123"
+}
+
+### Browse open batches
+GET {{host}}/api/batches
+Authorization: Bearer {{token}}
+
+### Create an open batch (Instructor or Admin token)
+POST {{host}}/api/batches
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "BUET MSc CSE Preparation 2026",
+  "description": "Four-exam preparation batch",
+  "enrollmentDeadlineUtc": "2026-10-31T17:59:59Z",
+  "openForEnrollment": true
+}
+
+### Enroll as a student
+POST {{host}}/api/batches/00000000-0000-0000-0000-000000000000/enroll
+Authorization: Bearer {{token}}

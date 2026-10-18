@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: exam-management
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /Account/Login
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Database__Provider
+        value: Postgres
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__SigningKey
+        generateValue: true
+      - key: SeedAdmin__Email
+        sync: false
+      - key: SeedAdmin__Password
+        sync: false

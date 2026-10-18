@@ -1,0 +1,2 @@
+@{ ViewData["Title"] = "Confirm deletion"; }
+<div class="panel narrow"><h1>Delete @ViewBag.Kind?</h1><h2>@ViewBag.Name</h2><p>This permanently removes the @ViewBag.Kind and its associated submissions, grades, and results.@if(ViewBag.Kind == "batch"){<span> All exams and enrollments in this batch will also be deleted.</span>} This cannot be undone through the application.</p><form method="post"><button>Confirm permanent deletion</button></form><a asp-action="Index">Cancel and keep it</a></div>

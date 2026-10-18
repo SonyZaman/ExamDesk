@@ -1,0 +1,4 @@
+@model List<ApplicationUser>
+@inject UserManager<ApplicationUser> Users
+@{ ViewData["Title"] = "Manage users"; }
+<p class="eyebrow">ADMINISTRATION</p><h1>People & permissions</h1><p class="muted">Students register themselves. Assign instructor access here.</p><div class="panel tablewrap"><table><thead><tr><th>Name</th><th>Email</th><th>Current role</th><th>Update access</th></tr></thead><tbody>@foreach(var user in Model){<tr><td>@user.Name</td><td>@user.Email</td><td>@string.Join(", ", await Users.GetRolesAsync(user))</td><td>@if(user.Id != Users.GetUserId(User)){<form asp-action="SetRole" method="post" class="inline"><input type="hidden" name="id" value="@user.Id"/><select name="role" aria-label="New role for @user.Name"><option>Student</option><option>Instructor</option><option>Admin</option></select><button>Update</button></form>}else{<span class="muted">Your account</span>}</td></tr>}</tbody></table></div>
