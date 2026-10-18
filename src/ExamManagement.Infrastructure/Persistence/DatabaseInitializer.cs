@@ -40,6 +40,16 @@ public static class DatabaseInitializer
             if (!result.Succeeded)
                 throw new InvalidOperationException(string.Join(" ", result.Errors.Select(x => x.Description)));
         }
+        else if (!await userManager.CheckPasswordAsync(admin, password))
+        {
+            var removeResult = await userManager.RemovePasswordAsync(admin);
+            if (!removeResult.Succeeded)
+                throw new InvalidOperationException(string.Join(" ", removeResult.Errors.Select(x => x.Description)));
+
+            var addResult = await userManager.AddPasswordAsync(admin, password);
+            if (!addResult.Succeeded)
+                throw new InvalidOperationException(string.Join(" ", addResult.Errors.Select(x => x.Description)));
+        }
 
         if (!await userManager.IsInRoleAsync(admin, AppRoles.Admin))
             await userManager.AddToRoleAsync(admin, AppRoles.Admin);
