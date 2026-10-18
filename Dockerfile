@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet restore ExamManagement.slnx
+RUN dotnet restore src/ExamManagement.API/ExamManagement.API.csproj
 RUN dotnet publish src/ExamManagement.API/ExamManagement.API.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
