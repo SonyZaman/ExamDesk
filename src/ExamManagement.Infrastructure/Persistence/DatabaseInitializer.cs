@@ -49,6 +49,12 @@ public static class DatabaseInitializer
             var addResult = await userManager.AddPasswordAsync(admin, password);
             if (!addResult.Succeeded)
                 throw new InvalidOperationException(string.Join(" ", addResult.Errors.Select(x => x.Description)));
+            admin.IsActive = true;
+            admin.LockoutEnd = null;
+            admin.AccessFailedCount = 0;
+            var updateResult = await userManager.UpdateAsync(admin);
+            if (!updateResult.Succeeded)
+                throw new InvalidOperationException(string.Join(" ", updateResult.Errors.Select(x => x.Description)));
         }
 
         if (!await userManager.IsInRoleAsync(admin, AppRoles.Admin))
